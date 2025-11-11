@@ -14,13 +14,15 @@ def calcular_heuristica(nodo_actual:Nodo,nodo_final:Nodo):
 
 def reconstruir_camino(nodo_final:Nodo) -> (list, int):
     """
+    Recorre la cadena de padres desde el nodo final hacia atrás para construir
+    la ruta optima
     :param nodo_final:
     :return: Una lista con el camino y un valor int que indica el coste total
     """
     camino = []
     coste_total = nodo_final.g # El coste acumulado del nodo final es el coste de la ruta
     actual = nodo_final
-    while actual:
+    while actual: # Mientras no sea None, el nodo nodo inicial no tiene padare
         # Agregar el las posiciones actuales al camino
         camino.append((actual.x,actual.y))
         # Accedemos al padre del nodo actual para poder seguir retrocediendo en el camino
@@ -31,108 +33,74 @@ def reconstruir_camino(nodo_final:Nodo) -> (list, int):
     return camino[::-1], coste_total
 
 
-def encontrar_ruta(tablero: Tablero, inicio: tuple, fin: tuple) -> (list, int):
+def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
     """
-    Implementación del algoritmo A* (A Estrella).
-    Encuentra la ruta de mínimo coste desde un punto de inicio a uno de fin.
+        Implementacion del algoritmo, aqui se intenta encontrar la ruta de coste
+        minimo entre dos puntos.
 
-    @param tablero: El objeto Tablero sobre el que buscar.
-    @param inicio: Tupla (x, y) del punto de partida.
-    @param fin: Tupla (x, y) del punto de destino.
-    @return: Tupla (camino, coste) o ([], 0) si no se encuentra ruta.
+        :param tablero:El tablero o mapa sobre el que se quiere
+        :param inicio: La tupla (x,y) que indica el punto de partida
+        :param fin: La tupla que (x,y) que indica el punto final
+        :return: una tupla de (camino,coste_total) si lo encuentra y ([],0) si no.
     """
+    # Inicializamos los nodos
+    nodo_inicio = Nodo(inicio[0],inicio[1])
+    nodo_final = Nodo(fin[0],fin[1])
 
-    # --- 1. Inicialización ---
-    nodo_inicio = Nodo(inicio[0], inicio[1])
-    nodo_fin = Nodo(fin[0], fin[1])
-
-    # La 'Open List' (lista_abierta) es una COLA DE PRIORIDAD.
-    # Contiene los nodos que hemos descubierto pero aún no hemos evaluado.
-    # heapq nos garantiza que siempre sacaremos el nodo con el 'f' más bajo.
-    lista_abierta = []
-    heapq.heappush(lista_abierta, nodo_inicio)
-
-    # La 'Closed List' (lista_cerrada) es un CONJUNTO (set).
-    # Contiene las posiciones (x, y) de los nodos que YA hemos evaluado.
-    # Usar un 'set' nos da búsquedas O(1) (casi instantáneas).
-    lista_cerrada = set()
-
-    # Calcular los costes iniciales del nodo de inicio
+    # Creamos la cola de prioridad para almacenar los nodos abiertos pero
+    # sin evaluar. Utilizando heapq, siempre podremos obtener el nodo con la 'f' mas bajo
+    lista_abiertos = []
+    heapq.heappush(lista_abiertos,nodo_inicio)
+    # Ahora necesitamos otra estructura para almacenar los nodos cerrados
+    # Estos son los elementos que ya hemos evaluado
+    lista_cerrados = set()
+    # Costes iniciales del nodo de inicio
     nodo_inicio.g = 0
-    nodo_inicio.h = calcular_heuristica(nodo_inicio, nodo_fin)
+    nodo_inicio.h = calcular_heuristica(nodo_inicio,nodo_final)
     nodo_inicio.f = nodo_inicio.g + nodo_inicio.h
 
-    # --- 2. Bucle principal de A* ---
-    # El bucle continúa mientras haya nodos por explorar en la lista abierta
-    while lista_abierta:
-
-        # Obtenemos el nodo con el MENOR coste 'f' de la cola de prioridad
-        nodo_actual = heapq.heappop(lista_abierta)
-
-        # Comprobamos si ya hemos procesado este nodo (su posición)
-        # Esto es clave: si ya está en la lista cerrada, significa que
-        # encontramos un camino *mejor* (más barato) a él en el pasado.
-        if (nodo_actual.x, nodo_actual.y) in lista_cerrada:
+    # Bucle del A* que se ejecuta mientras haya nodos por explorar en la lista de abiertos
+    while lista_abiertos:
+        # Obtenemos el nodo con el menor f de nuestra cola de prioridad
+        nodo_actual = heapq.heappop(lista_abiertos)
+        # Comprobamos si ha se ha explorado este nodo, si es el caso, significa que
+        # hemos encontrado uno mas barato anteriormente
+        if(nodo_actual.x,nodo_actual.y) in  lista_cerrados:
             continue
+        # Agregar la posicion actual a la lista cerrada ya que se acaba de visitar
+        lista_cerrados.add((nodo_actual.x,nodo_actual.y))
 
-        # Añadimos la posición actual a la lista cerrada (la "visitamos")
-        lista_cerrada.add((nodo_actual.x, nodo_actual.y))
+        # Comprobamos si hemos llegado al destino
+        if nodo_actual == nodo_final:
+            print("Se ha encontrado un camino")
+            return  reconstruir_camino(nodo_actual)
 
-        # --- 3. Comprobar si hemos llegado al destino ---
-        if nodo_actual == nodo_fin:
-            print("¡Ruta encontrada!")
-            # Si llegamos, reconstruimos el camino y lo devolvemos
-            return reconstruir_camino(nodo_actual)
-
-        # --- 4. Explorar vecinos (4 direcciones) ---
-        movimientos = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # Arriba, Abajo, Der, Izq
-
-        for mov_x, mov_y in movimientos:
+        #Explorar los vecinos
+        posibles_movimientos = [(0,1),(0,-1),(-1,0),(1,0)] # arriba,abajo,izq,der
+        for mov_x, mov_y in posibles_movimientos:
             vecino_x = nodo_actual.x + mov_x
             vecino_y = nodo_actual.y + mov_y
 
-            # Si el vecino no es transitable (muro) o está fuera de límites, lo ignoramos
-            if not tablero.es_transitable(vecino_x, vecino_y):
+            if not tablero.es_transitable(vecino_x,vecino_y):
                 continue
 
-            # Creamos un nuevo objeto Nodo para el vecino
-            vecino = Nodo(vecino_x, vecino_y, padre=nodo_actual)
-
-            # --- 5. Calcular costes del vecino ---
-
-            # Coste de moverse *desde* el nodo actual *hacia* el vecino
-            coste_transito = tablero.get_coste(vecino.x, vecino.y)
-
-            # El nuevo coste 'g' es el 'g' del padre + el coste de transitar
-            nuevo_g = nodo_actual.g + coste_transito
-
-            # Comprobación de optimización (no estrictamente necesaria
-            # en esta implementación simple, pero es buena práctica):
-            # Si ya hemos visto este vecino con un coste 'g' menor,
-            # no lo volvemos a añadir. Pero nuestra lista cerrada ya
-            # maneja la mayor parte de esto.
-
+            vecino = Nodo(vecino_x,vecino_y,padre=nodo_actual)
+            # Calculamos los costes del vecino
+            coste_vecino = tablero.get_coste(vecino.x,vecino.y)
+            # Actualizar el valor de g
+            nuevo_g = nodo_actual.g + coste_vecino
+            # En caso de que el vecino tenga un coste menor, nuestra cola de prioridad
+            # ya se encargará se sacar la que tenga el f mas bajo primero.
+            # Gracias a tener el metodo __lt__ definido en cada nodo, la cola de prioridad
+            # podra comparar todos los nodos por su f y ordenarlos
             vecino.g = nuevo_g
-            vecino.h = calcular_heuristica(vecino, nodo_fin)
+            vecino.h = calcular_heuristica(vecino,nodo_final)
             vecino.f = vecino.g + vecino.h
+            # Agregar el vecino a la cola de prioridad para explorarlo
+            heapq.heappush(lista_abiertos,vecino)
 
-            # Añadir el vecino a la lista abierta (cola de prioridad)
-            # heapq lo colocará en la posición correcta según su coste 'f'
-            heapq.heappush(lista_abierta, vecino)
 
-    # Si la lista abierta se vacía y no encontramos el final, no hay ruta
-    print("No se ha podido encontrar una ruta.")
-    return [], 0
-
-"""
-def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
-    
-    Implementacion del algoritmo, aqui se intenta encontrar la ruta de coste
-    minimo entre dos puntos.
-
-    :param tablero:El tablero o mapa sobre el que se quiere
-    :param inicio: La tupla (x,y) que indica el punto de partida
-    :param fin: La tupla que (x,y) que indica el punto final
-    :return:
-    
-"""
+    # En el caso de que se haya recorrido todos los elementos de lista_abiertos y
+    # no encontremos el final, no se ha encontrado una ruta
+    print("No se ha podido encontrar un camino")
+    return [],0

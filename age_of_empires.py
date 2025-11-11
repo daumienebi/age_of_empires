@@ -2,7 +2,7 @@ import time
 from tablero import Tablero
 from a_estrella import encontrar_ruta
 
-# Pedimos al usuario el tamaño, como pide la práctica (parametrizado)
+# Pedir las medidas del tablero al usuario
 try:
     ANCHO_TABLERO = int(input("Introduce el ancho del tablero (ej. 32): "))
     ALTO_TABLERO = int(input("Introduce el alto del tablero (ej. 32): "))
@@ -13,6 +13,8 @@ except ValueError:
 
 # Creación del Tablero ---
 mi_tablero = Tablero(ancho=ANCHO_TABLERO, alto=ALTO_TABLERO)
+
+print(mi_tablero.__repr__())
 
 # Definición de Inicio y Fin ---
 punto_inicio = (0, 0)
