@@ -11,6 +11,7 @@ class Nodo:
         self.g = 0 # El coste real
         self.h = 0 # La heuristica
         self.f = 0 # g+h
+        self.tropas = 0 # Numero de tropas al llegar a este nodo
 
     def __eq__(self, otro_nodo):
         """

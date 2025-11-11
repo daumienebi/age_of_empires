@@ -1,6 +1,6 @@
 import time
 from tablero import Tablero
-from a_estrella import encontrar_ruta
+from a_estrella import encontrar_ruta, TROPAS_INICIALES
 
 # Pedir las medidas del tablero al usuario
 try:
@@ -25,7 +25,7 @@ print(f"\nBuscando la ruta más económica desde {punto_inicio} hasta {punto_fin
 # Ejecución del Algoritmo A* ---
 start_time = time.time()  # Guardamos la hora de inicio
 
-camino_encontrado, coste_total = encontrar_ruta(mi_tablero, punto_inicio, punto_fin)
+camino_encontrado, coste_total,tropas_finales = encontrar_ruta(mi_tablero, punto_inicio, punto_fin)
 
 end_time = time.time()  # Guardamos la hora de fin
 
@@ -34,6 +34,7 @@ if camino_encontrado:
     # Si la lista 'camino_encontrado' no está vacía, encontramos una ruta
     print(f"Ruta encontrada en {end_time - start_time:.4f} segundos.")
     print(f"Coste total de la ruta: {coste_total}")
+    print(f"Tropas restantes: {tropas_finales} / {TROPAS_INICIALES}")
     print(f"Pasos en la ruta: {len(camino_encontrado)}")
 
     # Imprimir el mapa visual

@@ -2,6 +2,9 @@ from tablero import Tablero
 from nodo import Nodo
 import heapq
 
+VALOR_TROPA = 1000
+TROPAS_INICIALES = 4
+
 def calcular_heuristica(nodo_actual:Nodo,nodo_final:Nodo):
     """
     Calcula el coste estimando entre dos nodos utilizando la distancia de
@@ -12,7 +15,7 @@ def calcular_heuristica(nodo_actual:Nodo,nodo_final:Nodo):
     """
     return abs(nodo_actual.x - nodo_final.x) + abs(nodo_actual.y - nodo_final.y)
 
-def reconstruir_camino(nodo_final:Nodo) -> (list, int):
+def reconstruir_camino(nodo_final:Nodo) -> (list,int):
     """
     Recorre la cadena de padres desde el nodo final hacia atrás para construir
     la ruta optima
@@ -21,6 +24,7 @@ def reconstruir_camino(nodo_final:Nodo) -> (list, int):
     """
     camino = []
     coste_total = nodo_final.g # El coste acumulado del nodo final es el coste de la ruta
+    tropas_finales = nodo_final.tropas
     actual = nodo_final
     while actual: # Mientras no sea None, el nodo nodo inicial no tiene padare
         # Agregar el las posiciones actuales al camino
@@ -30,7 +34,7 @@ def reconstruir_camino(nodo_final:Nodo) -> (list, int):
 
     # Invertimos el camino para tenerlo en el orden [inicio -> fin] ya que tras el paso anterior
     # se encuentra en el otden [fin - inicio] y lo devolvemos con el coste total
-    return camino[::-1], coste_total
+    return camino[::-1], coste_total,tropas_finales
 
 
 def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
@@ -41,7 +45,7 @@ def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
         :param tablero:El tablero o mapa sobre el que se quiere
         :param inicio: La tupla (x,y) que indica el punto de partida
         :param fin: La tupla que (x,y) que indica el punto final
-        :return: una tupla de (camino,coste_total) si lo encuentra y ([],0) si no.
+        :return: una tupla de (camino,coste_total,tropas_restantes) si lo encuentra y ([],0,0) si no.
     """
     # Inicializamos los nodos
     nodo_inicio = Nodo(inicio[0],inicio[1])
@@ -57,7 +61,8 @@ def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
     # Costes iniciales del nodo de inicio
     nodo_inicio.g = 0
     nodo_inicio.h = calcular_heuristica(nodo_inicio,nodo_final)
-    nodo_inicio.f = nodo_inicio.g + nodo_inicio.h
+    nodo_inicio.tropas = TROPAS_INICIALES
+    nodo_inicio.f = (nodo_inicio.g + nodo_inicio.h) - (nodo_inicio.tropas * VALOR_TROPA)
 
     # Bucle del A* que se ejecuta mientras haya nodos por explorar en la lista de abiertos
     while lista_abiertos:
@@ -82,10 +87,17 @@ def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
 
             if not tablero.es_transitable(vecino_x,vecino_y):
                 continue
-
-            vecino = Nodo(vecino_x,vecino_y,padre=nodo_actual)
+            vecino = Nodo(vecino_x, vecino_y, padre=nodo_actual)
             # Calculamos los costes del vecino
-            coste_vecino = tablero.get_coste(vecino.x,vecino.y)
+            coste_vecino = tablero.get_coste(vecino.x, vecino.y)
+            # Obtener el riesgo del vecino
+            riesgo_vecino = tablero.get_riesgo(vecino.x, vecino.y)
+            # Obtener las tropas restantes, en el caso de que el riesgo sea == 0
+            # se mantendrán la misma cantidad de tropas
+            tropas_restantes = nodo_actual.tropas - riesgo_vecino
+            # Si todos la palman, no se puede hacer nada supongo xd
+            if tropas_restantes <= 0:
+                continue
             # Actualizar el valor de g
             nuevo_g = nodo_actual.g + coste_vecino
             # En caso de que el vecino tenga un coste menor, nuestra cola de prioridad
@@ -93,12 +105,14 @@ def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
             # Gracias a tener el metodo __lt__ definido en cada nodo, la cola de prioridad
             # podra comparar todos los nodos por su f y ordenarlos
             vecino.g = nuevo_g
+            vecino.tropas = tropas_restantes
             vecino.h = calcular_heuristica(vecino,nodo_final)
-            vecino.f = vecino.g + vecino.h
+            vecino.f = (vecino.g + vecino.h) - (vecino.tropas * VALOR_TROPA)
+
             # Agregar el vecino a la cola de prioridad para explorarlo
             heapq.heappush(lista_abiertos,vecino)
 
 
     # En el caso de que se haya recorrido todos los elementos de lista_abiertos y
     # no encontremos el final, no se ha encontrado una ruta
-    return [],0
+    return [],0,0

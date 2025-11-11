@@ -11,6 +11,8 @@ class Tablero:
         self.alto = max(10,alto)
         self.ancho = max(10,ancho)
         self.mi_tablero = []
+        # Otro "tablero" para indicar el riesgo de perder nuestras tropas en sus casillas
+        self.riesgo = [[0 for _ in range(self.ancho)] for _ in range(self.alto)]
         self._generar_mapa()
 
     def _generar_mapa(self):
@@ -33,13 +35,32 @@ class Tablero:
             for x in range(self.ancho):
                 if random.random() < 0.15:
                     self.mi_tablero[y][x] = TERRENO_DIFICIL
+                    # Calcular el riesgo de perder tropas en los terrenos dificiles
+                    if random.random() < 0.5:
+                        self.riesgo[y][x] = 1 # Se perderia una tropa
                 elif random.random() < 0.05:
                     self.mi_tablero[y][x] = SIN_ACCESO
                 elif random.random() < 0.03:
                     self.mi_tablero[y][x] = RECURSO
+                #Prueba para matar tropas
+                #if self.mi_tablero[y][x] != SIN_ACCESO and random.random() < 0.2:
+                    # Esta casilla (que puede ser FÁCIL o DIFÍCIL) mata a 1 tropa
+                    #self.riesgo[y][x] = 1
         #los del inicio y final tienen que ser terreno facil
         self.mi_tablero[0][0] = TERRENO_FACIL
         self.mi_tablero[self.alto - 1][self.ancho - 1] = TERRENO_FACIL
+
+    def get_riesgo(self,x:int, y:int):
+        """
+            Funcion para obtener el numero de tropas que se perderia en la casilla (x,y)
+            :param x:
+            :param y:
+            :return:
+        """
+        # Comprobamos si la posicion se encuentra en los limites
+        if not self.esta_en_limites(x,y):
+            return 0
+        return self.riesgo[y][x]
 
     def __repr__(self):
         repr = ""
