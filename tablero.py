@@ -11,13 +11,15 @@ class Tablero:
         self.alto = max(10,alto)
         self.ancho = max(10,ancho)
         self.mi_tablero = []
+        self._generar_mapa()
 
     def _generar_mapa(self):
         """
         Primer intento de generar un tablero simple
         :return:
         """
-        #self.mi_tablero = [[TERRENO_FACIL for _ in range(self.ancho)] for _ in range(self.alto)]
+        self.mi_tablero = [[TERRENO_FACIL for _ in range(self.ancho)] for _ in range(self.alto)]
+        """
         for x in range(self.alto):
             fila_nueva = []
             for y in range(self.ancho):
@@ -25,6 +27,7 @@ class Tablero:
                 fila_nueva.append(TERRENO_FACIL)
             # Agregamos cada fila al tablero
             self.mi_tablero.append(fila_nueva)
+        """
         # Agregamos más detalles al tablero con los terrnos dificiles etc
         for x in range(self.alto):
             for y in range(self.ancho):
@@ -69,10 +72,38 @@ class Tablero:
         """
         return (0 <= self.ancho < x) and (0 <= self.alto < y)
 
-    def imprimir_camino(self,camino:list):
+    def mostrar_camino(self,camino:list):
         """
-        Imprimir el camino encontrado en el tablero
+        Mostrar el camino encontrado en el tablero
         :param camino:
         :return:
         """
-        #TO-DO
+        # Defino el tablero inicial a mostrar por comprension
+        tablero_visual = [["-" for _ in range(self.alto)] for _ in range(self.ancho)]
+        for x in range(self.alto):
+            for y in range(self.ancho):
+                coste = self.get_coste(x,y)
+                if coste == SIN_ACCESO:
+                    tablero_visual[x][y] = "S"
+                elif coste == TERRENO_DIFICIL:
+                    tablero_visual[x][y] = "D"
+                elif coste == RECURSO:
+                    tablero_visual[x][y] = "R"
+                elif coste == TERRENO_FACIL:
+                    tablero_visual[x][y] = "."
+                else: tablero_visual[x][y] = "?"
+
+        if camino:
+            for x,y in camino:
+                if (x,y) != camino[0] and (x,y) != camino[0]:
+                    tablero_visual[x][y] = "*"
+                inicio_x,inicio_y = camino[0]
+                fin_x,fin_y = camino[-1]
+                tablero_visual[y][inicio_y][inicio_x] = "I"
+                #tablero_visual[inicio_y][inicio_x] = "I"
+                tablero_visual[fin_y][fin_x] = "F"
+        #Finalmente mostrar el camino
+        print("\n--- Visualización del camino ---")
+        for fila in tablero_visual:
+            print(" ".join(fila))
+        print("-----------------------------------")
