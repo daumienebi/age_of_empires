@@ -90,7 +90,7 @@ class Tablero:
         for y in range(self.alto): # filas (alto)
             for x in range(self.ancho): # columnas (ancho)
                 coste = self.get_coste(x,y)
-                if coste == SIN_ACCESO:
+                if coste == SIN_ACCESO:ds
                     tablero_visual[y][x] = "█"
                 elif coste == TERRENO_DIFICIL:
                     tablero_visual[y][x] = "▒"
