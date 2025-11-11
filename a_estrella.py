@@ -72,7 +72,6 @@ def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
 
         # Comprobamos si hemos llegado al destino
         if nodo_actual == nodo_final:
-            print("Se ha encontrado un camino")
             return  reconstruir_camino(nodo_actual)
 
         #Explorar los vecinos
@@ -102,5 +101,4 @@ def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
 
     # En el caso de que se haya recorrido todos los elementos de lista_abiertos y
     # no encontremos el final, no se ha encontrado una ruta
-    print("No se ha podido encontrar un camino")
     return [],0

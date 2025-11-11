@@ -79,38 +79,48 @@ class Tablero:
         """
         return (0 <= x < self.ancho) and (0 <= y < self.alto)
 
-    def mostrar_camino(self,camino:list):
+    def generar_visualizacion_camino(self, camino: list) -> list:
         """
-        Mostrar el camino encontrado en el tablero
-        :param camino:
-        :return:
+        Genera la lista de listas para la visualización del camino,
+        devuelve el tablero visual
         """
-        # Defino el tablero inicial a mostrar por comprension
-        tablero_visual = [["-" for _ in range(self.ancho)] for _ in range(self.alto)]
-        for y in range(self.alto): # filas (alto)
-            for x in range(self.ancho): # columnas (ancho)
-                coste = self.get_coste(x,y)
-                if coste == SIN_ACCESO:ds
+        tablero_visual = [["." for _ in range(self.ancho)] for _ in range(self.alto)]
+
+        for y in range(self.alto):  # filas (alto)
+            for x in range(self.ancho):  # columnas (ancho)
+                coste = self.get_coste(x, y)
+                if coste == SIN_ACCESO:
                     tablero_visual[y][x] = "█"
                 elif coste == TERRENO_DIFICIL:
                     tablero_visual[y][x] = "▒"
                 elif coste == RECURSO:
                     tablero_visual[y][x] = "R"
-                elif coste == TERRENO_FACIL:
+                else:  # Incluye TERRENO_FACIL
                     tablero_visual[y][x] = "."
-                else: tablero_visual[y][x] = "?"
 
         if camino:
-            for x,y in camino:
-                if (x,y) != camino[0] and (x,y) != camino[-1]:
+            for x, y in camino:
+                if (x, y) != camino[0] and (x, y) != camino[-1]:
                     tablero_visual[y][x] = "*"
-                inicio_x,inicio_y = camino[0]
-                fin_x,fin_y = camino[-1]
-                # Indicar posiciones iniciales y finales
-                tablero_visual[inicio_y][inicio_x] = "I"
-                tablero_visual[fin_y][fin_x] = "F"
-        #Finalmente mostrar el camino
+
+            inicio_x, inicio_y = camino[0]
+            fin_x, fin_y = camino[-1]
+
+            tablero_visual[inicio_y][inicio_x] = "I"
+            tablero_visual[fin_y][fin_x] = "F"
+
+        return tablero_visual
+
+    def mostrar_camino(self, camino: list):
+        """
+        Función "Vista" para la consola.
+        Genera e imprime la visualización del camino.
+        """
+        tablero_visual = self.generar_visualizacion_camino(camino)
+
+        # Esta parte (la impresión) ahora está aislada
         print("\n--- Visualización del camino ---")
         for fila in tablero_visual:
             print(" ".join(fila))
         print("-----------------------------------")
+        print("Leyenda: I=Inicio, F=Fin, *=Camino, R=Recurso, ▒=Difícil, █=Sin Acceso, .=Fácil")
