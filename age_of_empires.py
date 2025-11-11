@@ -1,3 +1,4 @@
+from tablero import Tablero
 #https://stackoverflow.com/questions/56723852/console-select-menu-in-python
 tablero = [
     [1,1,1,1,1,1,1,1,1,1],
