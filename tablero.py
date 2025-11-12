@@ -2,9 +2,10 @@ import random
 
 #Definir los valores de los costes
 TERRENO_FACIL = 1
-TERRENO_DIFICIL = 5
+TERRENO_DIFICIL = 7
+TERRENO_RIO = 5
 SIN_ACCESO = 9999
-RECURSO = -5
+RECURSO = -10
 
 class Tablero:
     def __init__(self,alto : int,ancho:int):
@@ -13,42 +14,40 @@ class Tablero:
         self.mi_tablero = []
         # Otro "tablero" para indicar el riesgo de perder nuestras tropas en sus casillas
         self.riesgo = [[0 for _ in range(self.ancho)] for _ in range(self.alto)]
-        self._generar_mapa()
+        # Otro "tablero" para indicar eo coste de tiempo en cada casilla
+        self.coste_tiempo = [[1 for _ in range(self.ancho)] for _ in range(self.alto)]
+        self._generar_tablero()
 
-    def _generar_mapa(self):
+    def _generar_tablero(self):
         """
-            Primer intento de generar un tablero simple
-            :return:
+            Generar el tablero del juego para nuestros soldados
         """
         self.mi_tablero = [[TERRENO_FACIL for _ in range(self.ancho)] for _ in range(self.alto)]
-        """
-        for x in range(self.alto):
-            fila_nueva = []
-            for y in range(self.ancho):
-                # Rellenamos de terrenos faciles
-                fila_nueva.append(TERRENO_FACIL)
-            # Agregamos cada fila al tablero
-            self.mi_tablero.append(fila_nueva)
-        """
         # Agregamos más detalles al tablero con los terrnos dificiles etc
         for y in range(self.alto):
             for x in range(self.ancho):
-                if random.random() < 0.15:
+                if random.random() < 0.30:
                     self.mi_tablero[y][x] = TERRENO_DIFICIL
                     # Calcular el riesgo de perder tropas en los terrenos dificiles
                     if random.random() < 0.5:
                         self.riesgo[y][x] = 1 # Se perderia una tropa
-                elif random.random() < 0.05:
+                elif random.random() < 0.20:
                     self.mi_tablero[y][x] = SIN_ACCESO
                 elif random.random() < 0.03:
                     self.mi_tablero[y][x] = RECURSO
+                elif random.random() < 0.10:
+                    self.mi_tablero[y][x] = TERRENO_RIO
+                    # Indicamos el coste del rio
+                    self.coste_tiempo[y][x] = 10
                 #Prueba para matar tropas
                 #if self.mi_tablero[y][x] != SIN_ACCESO and random.random() < 0.2:
                     # Esta casilla (que puede ser FÁCIL o DIFÍCIL) mata a 1 tropa
                     #self.riesgo[y][x] = 1
-        #los del inicio y final tienen que ser terreno facil
+        #los del inicio y final tienen que ser terreno facil y sin costar tiempo extra
         self.mi_tablero[0][0] = TERRENO_FACIL
         self.mi_tablero[self.alto - 1][self.ancho - 1] = TERRENO_FACIL
+        self.coste_tiempo[0][0] = 1
+        self.coste_tiempo[self.alto - 1][0] = 1
 
     def get_riesgo(self,x:int, y:int):
         """
@@ -62,6 +61,17 @@ class Tablero:
             return 0
         return self.riesgo[y][x]
 
+    def get_tiempo_coste(self,x:int, y:int):
+        """
+            Obtener el numero de turnos que cuesta pasar por la casilla (x,y)
+            :param x:
+            :param y:
+            :return:
+        """
+        if not self.esta_en_limites(x,y):
+            return 1 # Valor por defecto
+        return self.coste_tiempo[y][x]
+
     def __repr__(self):
         repr = ""
         # "y" = alto (filas) y "x" = ancho (columnas)
@@ -73,10 +83,10 @@ class Tablero:
 
     def get_coste(self,x: int, y:int):
         """
-        Funcion para obtener el coste
-        :param x: Posicion x
-        :param y: Posicion y
-        :return:
+            Funcion para obtener el coste
+            :param x: Posicion x
+            :param y: Posicion y
+            :return:
         """
         if not self.esta_en_limites(x,y):
             return SIN_ACCESO
@@ -84,10 +94,10 @@ class Tablero:
 
     def es_transitable(self,x:int, y:int):
         """
-        Comprobar si una casilla se encuentra bloqueada o no
-        :param x:
-        :param y:
-        :return:
+            Comprobar si una casilla se encuentra bloqueada o no
+            :param x:
+            :param y:
+            :return:
         """
         return self.get_coste(x,y) < SIN_ACCESO
 
@@ -102,8 +112,8 @@ class Tablero:
 
     def generar_visualizacion_camino(self, camino: list) -> list:
         """
-        Genera la lista de listas para la visualización del camino,
-        devuelve el tablero visual
+            Genera la lista de listas para la visualización del camino,
+            devuelve el tablero visual
         """
         tablero_visual = [["." for _ in range(self.ancho)] for _ in range(self.alto)]
 
@@ -114,6 +124,8 @@ class Tablero:
                     tablero_visual[y][x] = "█"
                 elif coste == TERRENO_DIFICIL:
                     tablero_visual[y][x] = "▒"
+                elif coste == TERRENO_RIO:
+                    tablero_visual[y][x] = "~"
                 elif coste == RECURSO:
                     tablero_visual[y][x] = "R"
                 else:  # Incluye TERRENO_FACIL
@@ -126,16 +138,13 @@ class Tablero:
 
             inicio_x, inicio_y = camino[0]
             fin_x, fin_y = camino[-1]
-
             tablero_visual[inicio_y][inicio_x] = "I"
             tablero_visual[fin_y][fin_x] = "F"
-
         return tablero_visual
 
     def mostrar_camino(self, camino: list):
         """
-        Función "Vista" para la consola.
-        Genera e imprime la visualización del camino.
+            Genera e imprime la visualización del camino.
         """
         tablero_visual = self.generar_visualizacion_camino(camino)
 
@@ -144,4 +153,4 @@ class Tablero:
         for fila in tablero_visual:
             print(" ".join(fila))
         print("-----------------------------------")
-        print("Leyenda: I=Inicio, F=Fin, *=Camino, R=Recurso, ▒=Difícil, █=Sin Acceso, .=Fácil")
+        print("Leyenda: I=Inicio, F=Fin, *=Camino, R=Recurso, ▒=Difícil, █=Sin Acceso, ~=Rio .=Fácil,")

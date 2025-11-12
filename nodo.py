@@ -12,6 +12,7 @@ class Nodo:
         self.h = 0 # La heuristica
         self.f = 0 # g+h
         self.tropas = 0 # Numero de tropas al llegar a este nodo
+        self.tiempo = 0 # Tiempo total hasta llegar a ese nodo
 
     def __eq__(self, otro_nodo):
         """
