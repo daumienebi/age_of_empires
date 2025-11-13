@@ -3,7 +3,7 @@ from nodo import Nodo
 import heapq
 
 # Estos valores indican la importancia de cada objetivo, en mi caso, he decidido que
-# el valor de la tropa tiene que ser la más alta ya que priorizo el hecho de que llegue vivos
+# el valor de la tropa tiene que ser la más alta ya que priorizo el hecho de que lleguen vivos
 VALOR_COSTE = 1
 VALOR_TIEMPO = 1000
 VALOR_TROPA = 100000
@@ -42,7 +42,7 @@ def reconstruir_camino(nodo_final:Nodo) -> (list,int,int,int):
     return camino[::-1], coste_total,tropas_finales,tiempo_total
 
 
-def encontrar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
+def buscar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
     """
         Implementacion del algoritmo, aqui se intenta encontrar la ruta de coste
         minimo entre dos puntos.

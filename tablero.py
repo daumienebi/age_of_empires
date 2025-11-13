@@ -26,16 +26,16 @@ class Tablero:
         # Agregamos más detalles al tablero con los terrnos dificiles etc
         for y in range(self.alto):
             for x in range(self.ancho):
-                if random.random() < 0.30:
+                if random.random() < 0.20:
                     self.mi_tablero[y][x] = TERRENO_DIFICIL
                     # Calcular el riesgo de perder tropas en los terrenos dificiles
-                    if random.random() < 0.5:
+                    if random.random() < 0.7:
                         self.riesgo[y][x] = 1 # Se perderia una tropa
                 elif random.random() < 0.20:
                     self.mi_tablero[y][x] = SIN_ACCESO
-                elif random.random() < 0.03:
+                elif random.random() < 0.05:
                     self.mi_tablero[y][x] = RECURSO
-                elif random.random() < 0.10:
+                elif random.random() < 0.30:
                     self.mi_tablero[y][x] = TERRENO_RIO
                     # Indicamos el coste del rio
                     self.coste_tiempo[y][x] = 10
@@ -110,15 +110,18 @@ class Tablero:
         """
         return (0 <= x < self.ancho) and (0 <= y < self.alto)
 
-    def generar_visualizacion_camino(self, camino: list) -> list:
+    def generar_visualizacion_camino(self, camino: list, inicio: tuple = None, fin: tuple = None) -> list:
         """
-            Genera la lista de listas para la visualización del camino,
-            devuelve el tablero visual
-        """
-        tablero_visual = [["." for _ in range(self.ancho)] for _ in range(self.alto)]
+        Genera la lista de listas para la visualización del camino.
+        Esta es la función CLAVE que usa la GUI.
 
-        for y in range(self.alto):  # filas (alto)
-            for x in range(self.ancho):  # columnas (ancho)
+        Si 'camino' está vacío, usará 'inicio' y 'fin' (si se proveen)
+        para dibujar solo los marcadores.
+        """
+        # 1. Crear tablero base con terreno
+        tablero_visual = [["." for _ in range(self.ancho)] for _ in range(self.alto)]
+        for y in range(self.alto):
+            for x in range(self.ancho):
                 coste = self.get_coste(x, y)
                 if coste == SIN_ACCESO:
                     tablero_visual[y][x] = "█"
@@ -131,15 +134,34 @@ class Tablero:
                 else:  # Incluye TERRENO_FACIL
                     tablero_visual[y][x] = "."
 
+        # 2. Determinar puntos de Inicio y Fin
+        inicio_pos, fin_pos = None, None
+
         if camino:
+            # Si hay un camino, los puntos vienen de él
+            inicio_pos = camino[0]
+            fin_pos = camino[-1]
+            # Dibujar el camino '*'
             for x, y in camino:
-                if (x, y) != camino[0] and (x, y) != camino[-1]:
+                if (x, y) != inicio_pos and (x, y) != fin_pos:
                     tablero_visual[y][x] = "*"
 
-            inicio_x, inicio_y = camino[0]
-            fin_x, fin_y = camino[-1]
-            tablero_visual[inicio_y][inicio_x] = "I"
-            tablero_visual[fin_y][fin_x] = "F"
+        elif inicio and fin:
+            # Si no hay camino PERO se dieron puntos, usarlos
+            inicio_pos = inicio
+            fin_pos = fin
+
+        # 3. Dibujar Inicio y Fin (si existen)
+        if inicio_pos and fin_pos:
+            try:
+                # Asegurarse de que los puntos están en el mapa
+                if self.esta_en_limites(inicio_pos[0], inicio_pos[1]):
+                    tablero_visual[inicio_pos[1]][inicio_pos[0]] = "I"
+                if self.esta_en_limites(fin_pos[0], fin_pos[1]):
+                    tablero_visual[fin_pos[1]][fin_pos[0]] = "F"
+            except IndexError:
+                print("Error: Coordenadas de inicio/fin fuera de rango al dibujar.")
+
         return tablero_visual
 
     def mostrar_camino(self, camino: list):
