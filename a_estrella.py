@@ -104,7 +104,7 @@ def buscar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
             vecino = Nodo(vecino_x, vecino_y, padre=nodo_actual)
             coste_vecino = tablero.get_coste(vecino.x, vecino.y)
             riesgo_vecino = tablero.get_riesgo(vecino.x, vecino.y)
-            tiempo_coste_vecino = tablero.get_tiempo_coste(vecino.x, vecino.y)
+            tiempo_coste_vecino = tablero.get_coste_turno(vecino.x, vecino.y)
             # Obtener las tropas restantes, en el caso de que el riesgo sea == 0
             # se mantendrán la misma cantidad de tropas
             tropas_restantes = nodo_actual.tropas - riesgo_vecino

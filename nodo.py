@@ -12,13 +12,13 @@ class Nodo:
         self.h = 0 # La heuristica
         self.f = 0 # g+h
         self.tropas = 0 # Numero de tropas al llegar a este nodo
-        self.tiempo = 0 # Tiempo total hasta llegar a ese nodo
+        self.tiempo = 0 # Unidad de Tiempo total hasta llegar a ese nodo
 
     def __eq__(self, otro_nodo):
         """
         Comprobar si dos nodos representan la misma casilla en el tablero
         :param __value:
-        :return:
+        :return: True si es equal y False sino
         """
         return isinstance(otro_nodo, Nodo) and self.x == otro_nodo.x and self.y == otro_nodo.y
 
@@ -27,7 +27,7 @@ class Nodo:
         Comparar si un nodo es menor que otro dado que en la cola de prioridad
         tenemos que ordenarlos de menor a mayor
         :param otro_nodo:
-        :return:
+        :return: True si la f de este nodo es menor que otro nodo y False si no
         """
         return self.f < otro_nodo.f
 

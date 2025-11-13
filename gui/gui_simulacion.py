@@ -26,7 +26,7 @@ except ImportError as e:
     print(f"Asegúrate de que 'tablero.py' y 'a_estrella.py' están en {project_root}")
     sys.exit(1)
 
-class AgeOfEmpiresGUI:
+class GUISimulacion:
     """
         Clase principal de la interfaz gráfica.
         Contiene los controles (botones, entradas) y el canvas del tablero.
@@ -341,5 +341,5 @@ class AgeOfEmpiresGUI:
 if __name__ == "__main__":
     print("Iniciando GUI en modo de prueba (saltando pantalla de carga)...")
     root = tk.Tk()
-    app = AgeOfEmpiresGUI(root)
+    app = GUISimulacion(root)
     root.mainloop()

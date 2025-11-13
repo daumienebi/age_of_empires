@@ -1,3 +1,8 @@
+"""
+    Este archivo solo servirá para realzar una simulación del algoritmo a
+    través de la consola de comandos si hiciera falta. Se recomienda
+    utilziar la GUI (simulador visual), ejecutando el main.py
+"""
 import time
 from tablero import Tablero
 from a_estrella import buscar_ruta, TROPAS_INICIALES
@@ -11,25 +16,19 @@ except ValueError:
     ANCHO_TABLERO = 32
     ALTO_TABLERO = 32
 
-# Creación del Tablero ---
 mi_tablero = Tablero(ancho=ANCHO_TABLERO, alto=ALTO_TABLERO)
-
 print(mi_tablero.__repr__())
-
-# Definición de Inicio y Fin ---
+# Definición de las casillas de inicio y final
 punto_inicio = (0, 0)
 punto_fin = (mi_tablero.ancho - 1, mi_tablero.alto - 1)
 
 print(f"\nBuscando la ruta más económica desde {punto_inicio} hasta {punto_fin}...")
 
-# Ejecución del Algoritmo A* ---
 start_time = time.time()  # Guardamos la hora de inicio
-
 camino,coste_total,tropas_finales,tiempo_total = buscar_ruta(mi_tablero, punto_inicio, punto_fin)
-
 end_time = time.time()  # Guardamos la hora de fin
 
-# Muestra de Resultados ---
+# Mostrar los resultados
 if camino:
     # Si la lista 'camino_encontrado' no está vacía, encontramos una ruta
     print(f"Ruta encontrada en {end_time - start_time:.4f} segundos.")
@@ -37,7 +36,6 @@ if camino:
     print(f"Tropas restantes: {tropas_finales} / {TROPAS_INICIALES}")
     print(f"Tiempo total: {tiempo_total}")
     print(f"Pasos en la ruta: {len(camino)}")
-
     # Imprimir el mapa visual
     mi_tablero.mostrar_camino(camino)
 else:

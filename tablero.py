@@ -14,8 +14,8 @@ class Tablero:
         self.mi_tablero = []
         # Otro "tablero" para indicar el riesgo de perder nuestras tropas en sus casillas
         self.riesgo = [[0 for _ in range(self.ancho)] for _ in range(self.alto)]
-        # Otro "tablero" para indicar eo coste de tiempo en cada casilla
-        self.coste_tiempo = [[1 for _ in range(self.ancho)] for _ in range(self.alto)]
+        # Otro "tablero" para indicar el coste de tiempo en cada casilla (indica cuantos turnos se pierden)
+        self.coste_turno = [[1 for _ in range(self.ancho)] for _ in range(self.alto)]
         self._generar_tablero()
 
     def _generar_tablero(self):
@@ -38,39 +38,35 @@ class Tablero:
                 elif random.random() < 0.30:
                     self.mi_tablero[y][x] = TERRENO_RIO
                     # Indicamos el coste del rio
-                    self.coste_tiempo[y][x] = 10
-                #Prueba para matar tropas
-                #if self.mi_tablero[y][x] != SIN_ACCESO and random.random() < 0.2:
-                    # Esta casilla (que puede ser FÁCIL o DIFÍCIL) mata a 1 tropa
-                    #self.riesgo[y][x] = 1
+                    self.coste_turno[y][x] = 10
         #los del inicio y final tienen que ser terreno facil y sin costar tiempo extra
         self.mi_tablero[0][0] = TERRENO_FACIL
         self.mi_tablero[self.alto - 1][self.ancho - 1] = TERRENO_FACIL
-        self.coste_tiempo[0][0] = 1
-        self.coste_tiempo[self.alto - 1][0] = 1
+        self.coste_turno[0][0] = 1
+        self.coste_turno[self.alto - 1][0] = 1
 
     def get_riesgo(self,x:int, y:int):
         """
             Funcion para obtener el numero de tropas que se perderia en la casilla (x,y)
             :param x:
             :param y:
-            :return:
+            :return: El riesgo de la casilla, devuelve 1 si hay riesgo y 0 si no
         """
         # Comprobamos si la posicion se encuentra en los limites
         if not self.esta_en_limites(x,y):
             return 0
         return self.riesgo[y][x]
 
-    def get_tiempo_coste(self,x:int, y:int):
+    def get_coste_turno(self, x:int, y:int):
         """
             Obtener el numero de turnos que cuesta pasar por la casilla (x,y)
             :param x:
             :param y:
-            :return:
+            :return: El coste del turno de la casilla en cuestion (fila,columna)
         """
         if not self.esta_en_limites(x,y):
             return 1 # Valor por defecto
-        return self.coste_tiempo[y][x]
+        return self.coste_turno[y][x]
 
     def __repr__(self):
         repr = ""
@@ -118,7 +114,7 @@ class Tablero:
         Si 'camino' está vacío, usará 'inicio' y 'fin' (si se proveen)
         para dibujar solo los marcadores.
         """
-        # 1. Crear tablero base con terreno
+        # Crear tablero base con terreno
         tablero_visual = [["." for _ in range(self.ancho)] for _ in range(self.alto)]
         for y in range(self.alto):
             for x in range(self.ancho):
@@ -133,8 +129,7 @@ class Tablero:
                     tablero_visual[y][x] = "R"
                 else:  # Incluye TERRENO_FACIL
                     tablero_visual[y][x] = "."
-
-        # 2. Determinar puntos de Inicio y Fin
+        # Determinar puntos de Inicio y Fin
         inicio_pos, fin_pos = None, None
 
         if camino:
@@ -145,13 +140,12 @@ class Tablero:
             for x, y in camino:
                 if (x, y) != inicio_pos and (x, y) != fin_pos:
                     tablero_visual[y][x] = "*"
-
         elif inicio and fin:
-            # Si no hay camino PERO se dieron puntos, usarlos
+            # Si no hay camino PERO se dieron puntos, lo usamos
             inicio_pos = inicio
             fin_pos = fin
 
-        # 3. Dibujar Inicio y Fin (si existen)
+        # Dibujar Inicio y Fin (si existen)
         if inicio_pos and fin_pos:
             try:
                 # Asegurarse de que los puntos están en el mapa
@@ -165,12 +159,8 @@ class Tablero:
         return tablero_visual
 
     def mostrar_camino(self, camino: list):
-        """
-            Genera e imprime la visualización del camino.
-        """
+        """Genera e imprime la visualización del camino."""
         tablero_visual = self.generar_visualizacion_camino(camino)
-
-        # Esta parte (la impresión) ahora está aislada
         print("\n--- Visualización del camino ---")
         for fila in tablero_visual:
             print(" ".join(fila))
