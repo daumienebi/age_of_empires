@@ -8,14 +8,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()
     # Preparar la GUI principal (la ventana sigue oculta)
-    # Hacemos esto ANTES de la splash, para que la "carga"
-    # real de la GUI ocurra durante la simulación de carga.
     app = GUISimulacion(root)
-
     # Lanzar la pantalla de carga.
     # Esta ventana se muestra y su temporizador 'after' se pone en la cola de eventos.
     splash = PantallaCarga(root)
     # Iniciar el ÚNICO bucle de eventos (mainloop).
-    # Esto permite que el temporizador 'after' de la
-    # pantalla de carga se ejecute con normalidad.
     root.mainloop()
