@@ -105,19 +105,13 @@ class GUISimulacion:
 
         self.btn_ruta = tk.Button(frame_controles, text="4.Buscar Ruta 🔍", bg='goldenrod1', command=self.buscar_y_dibujar_ruta)
         self.btn_ruta.pack(side=tk.LEFT, padx=10)
-
-        self.status_label = ttk.Label(frame_controles, text="Ajusta el tamaño y genera un tablero.", font=("Arial", 10))
-        self.status_label.pack(side=tk.LEFT, padx=20, fill=tk.X, expand=True)
-
         self.results_label = tk.Label(master,
-                                      text="Resultados: (Genera un tablero y busca una ruta)",
-                                      font=("Arial", 12, "bold"),
-                                      fg="#00008B",  # Color "DarkBlue"
-                                      pady=5)  # Un poco de espacio vertical
+                                      text="Ajusta el tamaño y genera un tablero.",
+                                      font=("Arial", 10, "bold"),fg="Orange",pady=3)
         self.results_label.pack(side=tk.TOP, fill=tk.X)
 
         # Frame inferior que contiene el tablero
-        frame_tablero = ttk.Frame(master, padding="10")
+        frame_tablero = ttk.Frame(master, padding="5")
         frame_tablero.pack(expand=True, fill=tk.BOTH)
 
         # Canvas con barrar de scroll
@@ -127,7 +121,6 @@ class GUISimulacion:
         self.canvas_tablero = tk.Canvas(frame_tablero, bg="gray80",yscrollcommand=v_scroll.set,
                                         xscrollcommand=h_scroll.set,borderwidth=0,
                                         highlightthickness=0)
-
         v_scroll.config(command=self.canvas_tablero.yview)
         h_scroll.config(command=self.canvas_tablero.xview)
 
@@ -225,7 +218,7 @@ class GUISimulacion:
         except ValueError:
             messagebox.showerror("Error", "Alto y Ancho deben ser números enteros >= 10.")
             return
-        self.status_label.config(text=f"Generando tablero de {ancho}x{alto}...")
+        self.results_label.config(text=f"Generando tablero de {ancho}x{alto}...")
         self.master.update_idletasks()
         # Creamos el Tablero
         self.mi_tablero = Tablero(alto=alto, ancho=ancho)
@@ -240,13 +233,14 @@ class GUISimulacion:
             fin=self.punto_fin
         )
         self.dibujar_tablero(visual)
-        self.status_label.config(text=f"Tablero de {ancho}x{alto} generado. Listo para buscar ruta.")
+        self.results_label.config(text=f"Tablero {ancho}x{alto} generado. Elige los puntos de inicio y final o \n"
+                                       f"buscar la ruta")
         # Resetea el label de resultados
-        self.results_label.config(text="Resultados: (Elige puntos y busca una ruta)")
+        #self.results_label.config(text="Resultados: (Elige puntos y busca una ruta)")
 
     def buscar_y_dibujar_ruta(self):
         if not self.mi_tablero:
-            messagebox.showwarning("Aviso", "Primero debes generar un tablero.")
+            messagebox.showwarning("Aviso", "Primero debes generar un tablero antes de buscar una ruta.")
             return
 
         # Validar que los puntos son transitables
@@ -254,7 +248,7 @@ class GUISimulacion:
                 not self.mi_tablero.es_transitable(*self.punto_fin):
             messagebox.showerror("Error", "El punto de inicio o fin está en un muro. Elige nuevos puntos.")
             return
-        self.status_label.config(text="Buscando ruta... (puede tardar)")
+        self.results_label.config(text="Buscando ruta... (puede tardar)")
         # No tener en cuenta la accion del usuario mientras buscamos una ruta
         self.master.update_idletasks()
         prioridad_seleccionada = self.prioridad_var.get()
@@ -293,13 +287,12 @@ class GUISimulacion:
         self.dibujar_tablero(visual)
         if camino:
             self.results_label.config(
-                text=f"Coste: {coste} | Tropas: {tropas}/{TROPAS_INICIALES} | Tiempo: {tiempo} turnos \n"
+                text=f"Coste: {coste} | Tropas: {tropas}/{TROPAS_INICIALES} | Tiempo: {tiempo} turnos | "
+                     f"Prioridad: {prioridad_seleccionada} \n"
                      f"La ruta fue encontrada en {end_time - start_time:.4f} segundos."
             )
-            self.status_label.config(
-                text=f"¡Ruta encontrada!")
         else:
-            self.status_label.config(text="No se pudo encontrar una ruta.")
+            self.results_label.config(text="No se pudo encontrar una ruta,genera otro tablero para volver a probar.")
 
     def dibujar_tablero(self, tablero_visual):
         """Dibuja la lista de listas en el Canvas usando IMÁGENES y BORDES."""
@@ -355,13 +348,19 @@ class GUISimulacion:
     # Seleccionar una casilla de inicio
     def activar_modo_inicio(self):
         """Activa el modo de selección para el punto de inicio."""
+        if not self.mi_tablero:
+            messagebox.showwarning("Aviso", "Primero debes generar un tablero antes elegir el inicio.")
+            return
         self.modo_seleccion = "inicio"
-        self.status_label.config(text="MODO SELECCIÓN: Haz clic en el tablero para elegir la casilla de INICIO.")
+        self.results_label.config(text="MODO SELECCIÓN: Haz clic en el tablero para elegir la casilla de INICIO.")
 
     def activar_modo_fin(self):
         """Activa el modo de selección para el punto final."""
+        if not self.mi_tablero:
+            messagebox.showwarning("Aviso", "Primero debes generar un tablero antes elegir el fin.")
+            return
         self.modo_seleccion = "fin"
-        self.status_label.config(text="MODO SELECCIÓN: Haz clic en el tablero para elegir la casilla FINAL.")
+        self.results_label.config(text="MODO SELECCIÓN: Haz clic en el tablero para elegir la casilla FINAL.")
 
     def on_canvas_click(self, event):
         """Manejador para cuando el usuario hace clic en el canvas."""
@@ -378,16 +377,17 @@ class GUISimulacion:
             nueva_coordenada = (columna, fila)
             # Validar que no sea un muro
             if not self.mi_tablero.es_transitable(columna, fila):
-                self.status_label.config(text="¡No puedes colocar un punto en un muro!")
+                self.results_label.config(text="¡No puedes colocar un punto en un muro!")
                 self.modo_seleccion = None
                 return
             if self.modo_seleccion == "inicio":
                 self.punto_inicio = nueva_coordenada
-                self.status_label.config(text=f"Nuevo inicio: {self.punto_inicio}. Elige Fin o Busca Ruta.")
+                self.results_label.config(text=f"Nuevo inicio: {self.punto_inicio}. Elige Fin o Busca Ruta.")
 
             elif self.modo_seleccion == "fin":
                 self.punto_fin = nueva_coordenada
-                self.status_label.config(text=f"Nuevo fin: {self.punto_fin}. Listo para Buscar Ruta.")
+                self.results_label.config(text=f"Nuevo fin: {self.punto_fin}. Elige el parametro a priorizar "
+                                               f"o pincha en 'Buscar ruta' para comenzar.")
             self.modo_seleccion = None  # Desactivar modo selección
             # Redibujar el tablero para mostrar el nuevo 'I' o 'F'
             self.redibujar_tablero_visual()
