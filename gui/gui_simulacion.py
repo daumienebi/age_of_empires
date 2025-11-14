@@ -20,6 +20,7 @@ sys.path.append(project_root)
 
 try:
     from tablero import Tablero
+    from tablero import TERRENO_FACIL, TERRENO_DIFICIL, TERRENO_RIO, RECURSO, SIN_ACCESO
     from a_estrella import buscar_ruta, TROPAS_INICIALES
 except ImportError as e:
     print(f"Error: No se pudieron importar los módulos de lógica: {e}")
@@ -37,7 +38,7 @@ class GUISimulacion:
         self.master.geometry("1024x768")
 
         self.mi_tablero = None
-        self.tamaño_celda = 40  # Tamaño para las imágenes
+        self.tamanho_celda = 40  # Tamaño para las imágenes
 
         self.punto_inicio = (0, 0)
         self.punto_fin = None  # Se definirá al generar el tablero
@@ -77,17 +78,17 @@ class GUISimulacion:
         self.entry_alto.insert(0, "15")  # Valor por defecto
         self.entry_alto.pack(side=tk.LEFT, padx=5)
 
-        self.btn_generar = tk.Button(frame_controles, text="Generar tablero",bg='SpringGreen2',command=self.generar_y_dibujar_tablero)
+        self.btn_generar = tk.Button(frame_controles, text="1.Generar tablero",bg='SpringGreen1',command=self.generar_y_dibujar_tablero)
         self.btn_generar.pack(side=tk.LEFT, padx=10)
 
         # Botones del frame superior
-        self.btn_set_inicio = tk.Button(frame_controles, text="Elegir Inicio",bg = 'green', command=self.activar_modo_inicio)
+        self.btn_set_inicio = tk.Button(frame_controles, text="2.Elegir Inicio",bg='DarkOliveGreen1', command=self.activar_modo_inicio)
         self.btn_set_inicio.pack(side=tk.LEFT, padx=5)
 
-        self.btn_set_fin = tk.Button(frame_controles, text="Elegir Fin",bg = 'red',command=self.activar_modo_fin)
+        self.btn_set_fin = tk.Button(frame_controles, text="3.Elegir Fin",bg='IndianRed2',command=self.activar_modo_fin)
         self.btn_set_fin.pack(side=tk.LEFT, padx=5)
 
-        self.btn_ruta = tk.Button(frame_controles, text="Buscar Ruta 🔍", bg='yellow', command=self.buscar_y_dibujar_ruta)
+        self.btn_ruta = tk.Button(frame_controles, text="4.Buscar Ruta 🔍", bg='goldenrod1', command=self.buscar_y_dibujar_ruta)
         self.btn_ruta.pack(side=tk.LEFT, padx=10)
 
         self.status_label = ttk.Label(frame_controles, text="Ajusta el tamaño y genera un tablero.", font=("Arial", 10))
@@ -138,7 +139,7 @@ class GUISimulacion:
         frame_leyenda.pack(expand=True, fill="both")
 
         # Lista de items de la leyenda (char, descripción)
-        legend_order = [
+        orden_leyenda = [
             ("I", "Punto de Inicio"),
             ("F", "Punto Final"),
             ("*", "Camino Encontrado"),
@@ -150,7 +151,7 @@ class GUISimulacion:
         ]
 
         # Iterar y crear la leyenda usando
-        for i, (char, text) in enumerate(legend_order):
+        for i, (char, text) in enumerate(orden_leyenda):
             # Obtener la imagen que ya cargamos en __init__
             img = self.imagenes_terreno.get(char)
             if img:
@@ -162,7 +163,7 @@ class GUISimulacion:
                 text_label.grid(row=i, column=1, padx=10, pady=5, sticky="w")
         # Botón para cerrar la leyenda
         btn_cerrar = ttk.Button(frame_leyenda, text="Cerrar", command=legend_window.destroy)
-        btn_cerrar.grid(row=len(legend_order), column=0, columnspan=2, pady=(15, 0))
+        btn_cerrar.grid(row=len(orden_leyenda), column=0, columnspan=2, pady=(15, 0))
 
     def mostrar_acerca_de(self):
         messagebox.showinfo(
@@ -175,7 +176,7 @@ class GUISimulacion:
 
     def cargar_imagenes(self):
         """Carga, redimensiona y almacena todas las imágenes del terreno."""
-        print(f"Cargando imágenes (tamaño {self.tamaño_celda}x{self.tamaño_celda})...")
+        print(f"Cargando imágenes (tamaño {self.tamanho_celda}x{self.tamanho_celda})...")
         # Mapeo de caracteres del tablero visual a nombres de archivo
         nombres_imagenes = {
             ".": "terreno_facil.jpg",
@@ -185,20 +186,19 @@ class GUISimulacion:
             "R": "recurso.jpg",
             "I": "inicio.png",
             "F": "fin.jpg",
-            "*": "soldado_caminando.gif"
         }
         for char, nombre_archivo in nombres_imagenes.items():
             ruta = os.path.join(project_root, "resources", nombre_archivo)
             try:
                 img_pil = Image.open(ruta)
                 # Reducir la imagen con ALTA CALIDAD (LANCZOS)
-                img_pil = img_pil.resize((self.tamaño_celda, self.tamaño_celda), Image.Resampling.LANCZOS)
+                img_pil = img_pil.resize((self.tamanho_celda, self.tamanho_celda), Image.Resampling.LANCZOS)
                 # Convertir la  imagen para que sirva para Tkinter
                 self.imagenes_terreno[char] = ImageTk.PhotoImage(img_pil)
             except Exception as e:
                 print(f"Error al cargar imagen {nombre_archivo}: {e}")
                 # Si falla, creamos una imagen de color de fallback
-                img_por_defecto = Image.new("RGB", (self.tamaño_celda, self.tamaño_celda), "yellow")
+                img_por_defecto = Image.new("RGB", (self.tamanho_celda, self.tamanho_celda), "yellow")
                 self.imagenes_terreno[char] = ImageTk.PhotoImage(img_por_defecto)
 
     def generar_y_dibujar_tablero(self):
@@ -267,23 +267,55 @@ class GUISimulacion:
             self.status_label.config(text="No se pudo encontrar una ruta.")
 
     def dibujar_tablero(self, tablero_visual):
-        """Dibuja la lista de listas en el Canvas usando IMÁGENES."""
+        """Dibuja la lista de listas en el Canvas usando IMÁGENES y BORDES."""
         self.canvas_tablero.delete("all")
         if not self.mi_tablero: return
-        ancho_tablero_px = self.mi_tablero.ancho * self.tamaño_celda
-        alto_tablero_px = self.mi_tablero.alto * self.tamaño_celda
-        # Actualizar la región de scroll
+
+        ancho_tablero_px = self.mi_tablero.ancho * self.tamanho_celda
+        alto_tablero_px = self.mi_tablero.alto * self.tamanho_celda
         self.canvas_tablero.config(scrollregion=(0, 0, ancho_tablero_px, alto_tablero_px))
+
         for y, fila in enumerate(tablero_visual):
-            for x, char in enumerate(fila):
-                # Calcular coordenadas del píxel
-                x0 = x * self.tamaño_celda
-                y0 = y * self.tamaño_celda
-                # Obtener la imagen correspondiente
-                imagen_a_dibujar = self.imagenes_terreno.get(char)
-                if imagen_a_dibujar:
-                    # Dibujar la imagen. 'anchor="nw"' es CLAVE.
-                    self.canvas_tablero.create_image(x0, y0, image=imagen_a_dibujar, anchor="nw")
+            for x, char_visual in enumerate(fila):
+                x0 = x * self.tamanho_celda
+                y0 = y * self.tamanho_celda
+                x1 = x0 + self.tamanho_celda
+                y1 = y0 + self.tamanho_celda
+                # 1. Determinar el terreno base
+                char_terreno = char_visual
+                if char_visual in ("*", "I", "F"):
+                    # Si es un overlay, preguntar al tablero qué terreno hay debajo
+                    coste = self.mi_tablero.get_coste(x, y)
+                    if coste == TERRENO_FACIL:
+                        char_terreno = "."
+                    elif coste == TERRENO_DIFICIL:
+                        char_terreno = "▒"
+                    elif coste == TERRENO_RIO:
+                        char_terreno = "~"
+                    elif coste == RECURSO:
+                        char_terreno = "R"
+                    elif coste == SIN_ACCESO:
+                        char_terreno = "█"
+
+                # 2. Dibujar la IMAGEN del terreno base
+                imagen_terreno = self.imagenes_terreno.get(char_terreno)
+                if imagen_terreno:
+                    self.canvas_tablero.create_image(x0, y0, image=imagen_terreno, anchor="nw")
+                # Dibujar el "overlay" (Imagen de Inicio/Fin o Borde de Camino)
+                if char_visual == "*":
+                    # dibujar el BORDE
+                    self.canvas_tablero.create_rectangle(x0, y0, x1, y1,outline="goldenrod1",width=4)
+                elif char_visual in ("I", "F"):
+                    # Es Inicio o Fin: dibujar la IMAGEN
+                    imagen_overlay = self.imagenes_terreno.get(char_visual)
+                    if imagen_overlay:
+                        self.canvas_tablero.create_image(x0, y0, image=imagen_overlay, anchor="nw")
+                elif char_visual == "█":
+                    # Es un muro, asegurarnos de que se dibuja (si no lo hizo ya la capa base)
+                    # Esto es un seguro en caso de que "I" o "F" estuvieran en un muro
+                    imagen_muro = self.imagenes_terreno.get("█")
+                    if imagen_muro:
+                        self.canvas_tablero.create_image(x0, y0, image=imagen_muro, anchor="nw")
 
     # Seleccionar una casilla de inicio
     def activar_modo_inicio(self):
@@ -303,8 +335,8 @@ class GUISimulacion:
 
         # Convertir píxeles de clic a coordenadas de cuadrícula
         # Usamos canvas.canvasx/y para compensar el scroll
-        columna = int(self.canvas_tablero.canvasx(event.x) // self.tamaño_celda)
-        fila = int(self.canvas_tablero.canvasy(event.y) // self.tamaño_celda)
+        columna = int(self.canvas_tablero.canvasx(event.x) // self.tamanho_celda)
+        fila = int(self.canvas_tablero.canvasy(event.y) // self.tamanho_celda)
 
         # Asegurarse de que el clic está dentro del tablero
         if 0 <= columna < self.mi_tablero.ancho and 0 <= fila < self.mi_tablero.alto:
