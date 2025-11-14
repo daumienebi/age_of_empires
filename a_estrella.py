@@ -2,13 +2,7 @@ from tablero import Tablero
 from nodo import Nodo
 import heapq
 
-# Estos valores indican la importancia de cada objetivo, en mi caso, he decidido que
-# el valor de la tropa tiene que ser la más alta ya que priorizo el hecho de que lleguen vivos
-VALOR_COSTE = 1
-VALOR_TIEMPO = 1000
-VALOR_TROPA = 100000
 TROPAS_INICIALES = 4
-
 def calcular_heuristica(nodo_actual:Nodo,nodo_final:Nodo):
     """
         Calcula el coste estimando entre dos nodos utilizando la distancia de
@@ -42,7 +36,8 @@ def reconstruir_camino(nodo_final:Nodo) -> (list,int,int,int):
     return camino[::-1], coste_total,tropas_finales,tiempo_total
 
 
-def buscar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
+def buscar_ruta(tablero:Tablero, inicio:tuple, fin:tuple,valor_coste:int,
+                valor_tiempo:int,valor_tropa):
     """
         Implementacion del algoritmo, aqui se intenta encontrar la ruta de coste
         minimo entre dos puntos.
@@ -70,10 +65,10 @@ def buscar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
     nodo_inicio.tiempo = 0
 
     # Calculo de los 3 objetivos para el valor de 'f'
-    f_coste = (nodo_inicio.g + nodo_inicio.h) * VALOR_COSTE
-    f_tropas =  (nodo_inicio.tropas * VALOR_TROPA)
+    f_coste = (nodo_inicio.g + nodo_inicio.h) * valor_coste
+    f_tropas =  (nodo_inicio.tropas * valor_tropa)
     # h tambien estima el tiempo ya que el tiempo puede indicar los 'turnos' que se pierde
-    f_tiempo = (nodo_inicio.tiempo + nodo_inicio.h) * VALOR_TIEMPO
+    f_tiempo = (nodo_inicio.tiempo + nodo_inicio.h) * valor_tiempo
     nodo_inicio.f = f_coste + f_tiempo - f_tropas
     # nodo_inicio.f = nodo_inicio.g + nodo_inicio.h
     # nodo_inicio.f = (nodo_inicio.g + nodo_inicio.h) - (nodo_inicio.tropas * VALOR_TROPA)
@@ -122,11 +117,10 @@ def buscar_ruta(tablero:Tablero, inicio:tuple, fin:tuple):
             vecino.tiempo = nodo_actual.tiempo + tiempo_coste_vecino
             vecino.h = calcular_heuristica(vecino,nodo_final)
             # Calculo de los 3 objetivos para el valor de 'f' del vecino
-            f_coste_vecino = (vecino.g + vecino.h) * VALOR_COSTE
-            f_tropas_vecino = vecino.tropas * VALOR_TROPA
-            f_tiempo_vecino = (vecino.g + vecino.h) * VALOR_TIEMPO
+            f_coste_vecino = (vecino.g + vecino.h) * valor_coste
+            f_tropas_vecino = vecino.tropas * valor_tropa
+            f_tiempo_vecino = (vecino.g + vecino.h) * valor_tiempo
             vecino.f = f_coste_vecino + f_tiempo_vecino - f_tropas_vecino
-
             # Agregar el vecino a la cola de prioridad para explorarlo
             heapq.heappush(lista_abiertos,vecino)
 

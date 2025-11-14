@@ -120,9 +120,9 @@ class Tablero:
             for x in range(self.ancho):
                 coste = self.get_coste(x, y)
                 if coste == SIN_ACCESO:
-                    tablero_visual[y][x] = "█"
+                    tablero_visual[y][x] = "M"
                 elif coste == TERRENO_DIFICIL:
-                    tablero_visual[y][x] = "▒"
+                    tablero_visual[y][x] = "D"
                 elif coste == TERRENO_RIO:
                     tablero_visual[y][x] = "~"
                 elif coste == RECURSO:
@@ -165,4 +165,4 @@ class Tablero:
         for fila in tablero_visual:
             print(" ".join(fila))
         print("-----------------------------------")
-        print("Leyenda: I=Inicio, F=Fin, *=Camino, R=Recurso, ▒=Difícil, █=Sin Acceso, ~=Rio .=Fácil,")
+        print("Leyenda: I=Inicio, F=Fin, *=Camino, R=Recurso, D=Difícil, M=Sin Acceso, ~=Rio .=Fácil,")

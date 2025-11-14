@@ -1,7 +1,8 @@
 """
     Este archivo solo servirá para realzar una simulación del algoritmo a
     través de la consola de comandos si hiciera falta. Se recomienda
-    utilziar la GUI (simulador visual), ejecutando el main.py
+    utilziar la GUI (simulador visual), ejecutando el main.py para poder personalizar
+    mas la experiencia.
 """
 import time
 from tablero import Tablero
@@ -24,9 +25,9 @@ punto_fin = (mi_tablero.ancho - 1, mi_tablero.alto - 1)
 
 print(f"\nBuscando la ruta más económica desde {punto_inicio} hasta {punto_fin}...")
 
-start_time = time.time()  # Guardamos la hora de inicio
+start_time = time.time()
 camino,coste_total,tropas_finales,tiempo_total = buscar_ruta(mi_tablero, punto_inicio, punto_fin)
-end_time = time.time()  # Guardamos la hora de fin
+end_time = time.time()
 
 # Mostrar los resultados
 if camino:

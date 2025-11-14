@@ -1,5 +1,5 @@
 # Colores : https://cs111.wellesley.edu/archive/cs111_fall14/public_html/labs/lab12/tkintercolor.html
-
+import time
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sys
@@ -24,7 +24,7 @@ try:
     from a_estrella import buscar_ruta, TROPAS_INICIALES
 except ImportError as e:
     print(f"Error: No se pudieron importar los módulos de lógica: {e}")
-    print(f"Asegúrate de que 'tablero.py' y 'a_estrella.py' están en {project_root}")
+    print(f"Los ficheros 'tablero.py' y 'a_estrella.py' están en {project_root}")
     sys.exit(1)
 
 class GUISimulacion:
@@ -35,10 +35,9 @@ class GUISimulacion:
     def __init__(self, master):
         self.master = master
         self.master.title("Age of Empires - Simulación Algoritmo A*")
-        self.master.geometry("1024x768")
-
+        self.master.geometry("1024x680")
         self.mi_tablero = None
-        self.tamanho_celda = 40  # Tamaño para las imágenes
+        self.tamanho_celda = 40
 
         self.punto_inicio = (0, 0)
         self.punto_fin = None  # Se definirá al generar el tablero
@@ -52,7 +51,7 @@ class GUISimulacion:
         menubar = tk.Menu(self.master)
         self.master.config(menu=menubar)
 
-        # --- Menú "Ayuda" ---
+        # Menu ayuda
         menu_ayuda = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Ayuda", menu=menu_ayuda)
 
@@ -70,12 +69,12 @@ class GUISimulacion:
 
         ttk.Label(frame_controles, text="Ancho (Tablero):").pack(side=tk.LEFT, padx=(0, 5))
         self.entry_ancho = ttk.Entry(frame_controles, width=5)
-        self.entry_ancho.insert(0, "20")  # Valor por defecto
+        self.entry_ancho.insert(0, "14")  # Valor por defecto
         self.entry_ancho.pack(side=tk.LEFT, padx=5)
 
         ttk.Label(frame_controles, text="Alto (Tablero):").pack(side=tk.LEFT, padx=5)
         self.entry_alto = ttk.Entry(frame_controles, width=5)
-        self.entry_alto.insert(0, "15")  # Valor por defecto
+        self.entry_alto.insert(0, "14")  # Valor por defecto
         self.entry_alto.pack(side=tk.LEFT, padx=5)
 
         self.btn_generar = tk.Button(frame_controles, text="1.Generar tablero",bg='SpringGreen1',command=self.generar_y_dibujar_tablero)
@@ -88,6 +87,22 @@ class GUISimulacion:
         self.btn_set_fin = tk.Button(frame_controles, text="3.Elegir Fin",bg='IndianRed2',command=self.activar_modo_fin)
         self.btn_set_fin.pack(side=tk.LEFT, padx=5)
 
+        # Crear una variable de string para guardar la selección
+        self.prioridad_var = tk.StringVar()
+        opciones_prioridad = ["Priorizar Tropas", "Priorizar Tiempo", "Priorizar Coste"]
+        # Crear el Combobox (dropdown)
+        ttk.Label(frame_controles, text="Prioridad:").pack(side=tk.LEFT, padx=(10, 5))
+        self.combo_prioridad = ttk.Combobox(
+            frame_controles,
+            textvariable=self.prioridad_var,
+            values=opciones_prioridad,
+            state="readonly",  # Evita que el usuario escriba texto
+            width=15
+        )
+        # Establecer el valor por defecto
+        self.combo_prioridad.set(opciones_prioridad[0])  # "Priorizar Tropas"
+        self.combo_prioridad.pack(side=tk.LEFT, padx=5)
+
         self.btn_ruta = tk.Button(frame_controles, text="4.Buscar Ruta 🔍", bg='goldenrod1', command=self.buscar_y_dibujar_ruta)
         self.btn_ruta.pack(side=tk.LEFT, padx=10)
 
@@ -96,7 +111,7 @@ class GUISimulacion:
 
         self.results_label = tk.Label(master,
                                       text="Resultados: (Genera un tablero y busca una ruta)",
-                                      font=("Arial", 14, "bold"),
+                                      font=("Arial", 12, "bold"),
                                       fg="#00008B",  # Color "DarkBlue"
                                       pady=5)  # Un poco de espacio vertical
         self.results_label.pack(side=tk.TOP, fill=tk.X)
@@ -105,11 +120,11 @@ class GUISimulacion:
         frame_tablero = ttk.Frame(master, padding="10")
         frame_tablero.pack(expand=True, fill=tk.BOTH)
 
-        # --- PASO 1: Canvas "Scrollable" ---
+        # Canvas con barrar de scroll
         v_scroll = ttk.Scrollbar(frame_tablero, orient=tk.VERTICAL)
         h_scroll = ttk.Scrollbar(frame_tablero, orient=tk.HORIZONTAL)
 
-        self.canvas_tablero = tk.Canvas(frame_tablero, bg="gray75",yscrollcommand=v_scroll.set,
+        self.canvas_tablero = tk.Canvas(frame_tablero, bg="gray80",yscrollcommand=v_scroll.set,
                                         xscrollcommand=h_scroll.set,borderwidth=0,
                                         highlightthickness=0)
 
@@ -122,7 +137,7 @@ class GUISimulacion:
         self.canvas_tablero.grid(row=0, column=0, sticky="nsew")
         v_scroll.grid(row=0, column=1, sticky="ns")
         h_scroll.grid(row=1, column=0, sticky="ew")
-        # Vincular el clic del Canvas ---
+        # Vincular el clic del Canvas
         self.canvas_tablero.bind("<Button-1>", self.on_canvas_click)
 
     def mostrar_leyenda(self):
@@ -144,10 +159,10 @@ class GUISimulacion:
             ("F", "Punto Final"),
             ("*", "Camino Encontrado"),
             (".", "Terreno Fácil (Coste 1, 1 Turno)"),
-            ("▒", "Terreno Difícil (Coste 5, Riesgo)"),
-            ("~", "Río (Coste 3, 10 Turnos)"),
-            ("R", "Recurso (Coste -5, 1 Turno)"),
-            ("█", "Muro (Sin Acceso)")
+            ("D", "Terreno Difícil (Coste 7, Riesgo)"),
+            ("~", "Río (Coste 5, 10 Turnos)"),
+            ("R", "Recurso (Coste -10, 1 Turno)"),
+            ("M", "Muro (Sin Acceso (9999))")
         ]
 
         # Iterar y crear la leyenda usando
@@ -180,9 +195,9 @@ class GUISimulacion:
         # Mapeo de caracteres del tablero visual a nombres de archivo
         nombres_imagenes = {
             ".": "terreno_facil.jpg",
-            "▒": "tree.png",
+            "D": "tree.png",
             "~": "rio.jpg",
-            "█": "sin_acceso.jpg",
+            "M": "sin_acceso.jpg",
             "R": "recurso.jpg",
             "I": "inicio.png",
             "F": "fin.jpg",
@@ -240,26 +255,46 @@ class GUISimulacion:
             messagebox.showerror("Error", "El punto de inicio o fin está en un muro. Elige nuevos puntos.")
             return
         self.status_label.config(text="Buscando ruta... (puede tardar)")
+        # No tener en cuenta la accion del usuario mientras buscamos una ruta
         self.master.update_idletasks()
+        prioridad_seleccionada = self.prioridad_var.get()
+        # Valores por defecto (Priorizar Tropas)
+        valor_tropa = 1000000
+        valor_tiempo = 10000
+        valor_coste = 10
+
+        if prioridad_seleccionada == "Priorizar Tiempo":
+            print("Modo de búsqueda: Priorizando TIEMPO")
+            valor_tropa = 10000  # Media
+            valor_tiempo = 1000000  # Máxima
+            valor_coste = 10  # Baja
+        elif prioridad_seleccionada == "Priorizar Coste":
+            print("Modo de búsqueda: Priorizando COSTE")
+            valor_tropa = 10000  # Media
+            valor_tiempo = 10  # Baja
+            valor_coste = 1000000  # Máxima
+        else:
+            # "Priorizar Tropas" (por defecto)
+            print("Modo de búsqueda: Priorizando TROPAS")
+
         # Ejecutar nuestro algoritmo usando los puntos guardados
+        start_time = time.time()
         camino, coste, tropas, tiempo = buscar_ruta(
-            self.mi_tablero,
-            self.punto_inicio,
-            self.punto_fin
+            self.mi_tablero,self.punto_inicio,self.punto_fin,
+            valor_coste,valor_tiempo,valor_tropa
         )
+        end_time = time.time()
         # Obtener la visualización con el camino
         visual = self.mi_tablero.generar_visualizacion_camino(
             camino=camino,
             inicio=self.punto_inicio,
             fin=self.punto_fin
         )
-
-        # 3. Redibujar
         self.dibujar_tablero(visual)
-
         if camino:
             self.results_label.config(
-                text=f"Coste: {coste} | Tropas: {tropas}/{TROPAS_INICIALES} | Tiempo: {tiempo} turnos"
+                text=f"Coste: {coste} | Tropas: {tropas}/{TROPAS_INICIALES} | Tiempo: {tiempo} turnos \n"
+                     f"La ruta fue encontrada en {end_time - start_time:.4f} segundos."
             )
             self.status_label.config(
                 text=f"¡Ruta encontrada!")
@@ -281,23 +316,23 @@ class GUISimulacion:
                 y0 = y * self.tamanho_celda
                 x1 = x0 + self.tamanho_celda
                 y1 = y0 + self.tamanho_celda
-                # 1. Determinar el terreno base
+                # Determinar el terreno base
                 char_terreno = char_visual
                 if char_visual in ("*", "I", "F"):
-                    # Si es un overlay, preguntar al tablero qué terreno hay debajo
+                    # Si es un overlay, obtener el terreno hay debajo
                     coste = self.mi_tablero.get_coste(x, y)
                     if coste == TERRENO_FACIL:
                         char_terreno = "."
                     elif coste == TERRENO_DIFICIL:
-                        char_terreno = "▒"
+                        char_terreno = "D"
                     elif coste == TERRENO_RIO:
                         char_terreno = "~"
                     elif coste == RECURSO:
                         char_terreno = "R"
                     elif coste == SIN_ACCESO:
-                        char_terreno = "█"
+                        char_terreno = "M"
 
-                # 2. Dibujar la IMAGEN del terreno base
+                # Dibujar la IMAGEN del terreno base
                 imagen_terreno = self.imagenes_terreno.get(char_terreno)
                 if imagen_terreno:
                     self.canvas_tablero.create_image(x0, y0, image=imagen_terreno, anchor="nw")
@@ -310,10 +345,10 @@ class GUISimulacion:
                     imagen_overlay = self.imagenes_terreno.get(char_visual)
                     if imagen_overlay:
                         self.canvas_tablero.create_image(x0, y0, image=imagen_overlay, anchor="nw")
-                elif char_visual == "█":
+                elif char_visual == "M":
                     # Es un muro, asegurarnos de que se dibuja (si no lo hizo ya la capa base)
                     # Esto es un seguro en caso de que "I" o "F" estuvieran en un muro
-                    imagen_muro = self.imagenes_terreno.get("█")
+                    imagen_muro = self.imagenes_terreno.get("M")
                     if imagen_muro:
                         self.canvas_tablero.create_image(x0, y0, image=imagen_muro, anchor="nw")
 
