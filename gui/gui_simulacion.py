@@ -2,6 +2,7 @@
 import time
 import tkinter as tk
 from tkinter import ttk, messagebox
+import webbrowser
 import sys
 import os
 
@@ -56,7 +57,7 @@ class GUISimulacion:
         menubar.add_cascade(label="Ayuda", menu=menu_ayuda)
 
         # Añadir items al menú Ayuda
-        menu_ayuda.add_command(label="Manual", command=self.mostrar_acerca_de)
+        menu_ayuda.add_command(label="Manual", command=self.mostrar_manual)
         menu_ayuda.add_command(label="Mostrar Leyenda", command=self.mostrar_leyenda)
         menu_ayuda.add_command(label="Acerca de...", command=self.mostrar_acerca_de)
 
@@ -179,8 +180,18 @@ class GUISimulacion:
             "Simulador de Algoritmo A* (Multiobjetivo)\n\n"
             "Proyecto para la asignatura 'Sistemas Inteligentes'.\n"
             "Desarrollado por: Derick Daumienebi Sakpa\n"
-            "Tutor : Jose Alberto"
+            "Tutor : Jose Alberto Maestro Prieto"
         )
+
+    def mostrar_manual(self):
+        try:
+            pdf_path = os.path.join(project_root, "resources", "manual.pdf")
+            if not os.path.exists(pdf_path):
+                messagebox.showerror("Error", f"No se pudo encontrar 'manual.pdf' en la carpeta 'resources'.")
+                return
+            webbrowser.open_new(f"file://{os.path.abspath(pdf_path)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo abrir el archivo del manual: {e}")
 
     def cargar_imagenes(self):
         """Carga, redimensiona y almacena todas las imágenes del terreno."""
@@ -192,7 +203,7 @@ class GUISimulacion:
             "~": "rio.jpg",
             "M": "sin_acceso.jpg",
             "R": "recurso.jpg",
-            "I": "inicio.png",
+            "I": "inicio.jpg",
             "F": "fin.jpg",
         }
         for char, nombre_archivo in nombres_imagenes.items():
@@ -287,7 +298,7 @@ class GUISimulacion:
         self.dibujar_tablero(visual)
         if camino:
             self.results_label.config(
-                text=f"Coste: {coste} | Tropas: {tropas}/{TROPAS_INICIALES} | Tiempo: {tiempo} turnos | "
+                text=f"Coste: {coste} | Tropas vivas: [{tropas}/{TROPAS_INICIALES}] | Tiempo: {tiempo} turnos | "
                      f"Prioridad: {prioridad_seleccionada} \n"
                      f"La ruta fue encontrada en {end_time - start_time:.4f} segundos."
             )
@@ -383,7 +394,6 @@ class GUISimulacion:
             if self.modo_seleccion == "inicio":
                 self.punto_inicio = nueva_coordenada
                 self.results_label.config(text=f"Nuevo inicio: {self.punto_inicio}. Elige Fin o Busca Ruta.")
-
             elif self.modo_seleccion == "fin":
                 self.punto_fin = nueva_coordenada
                 self.results_label.config(text=f"Nuevo fin: {self.punto_fin}. Elige el parametro a priorizar "
