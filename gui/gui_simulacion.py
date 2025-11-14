@@ -108,7 +108,7 @@ class GUISimulacion:
         self.btn_ruta.pack(side=tk.LEFT, padx=10)
         self.results_label = tk.Label(master,
                                       text="Ajusta el tamaño y genera un tablero.",
-                                      font=("Arial", 10, "bold"),fg="Orange",pady=3)
+                                      font=("Arial", 10, "bold"),fg="firebrick1",pady=3)
         self.results_label.pack(side=tk.TOP, fill=tk.X)
 
         # Frame inferior que contiene el tablero
